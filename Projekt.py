@@ -3,6 +3,13 @@
 
 # # Prediction of total COVID-19 infections in December 2023
 
+# In[45]:
+
+
+# Prosze podac sciezke do folderu w ktorym bedzie notebook i zip z danymi
+path = "C:/Users/dell/Downloads/DS1"
+
+
 # #### 1. Nazwa zespołu:
 # <br> The Overfitting Outliers
 # #### 2. Członkowie zespołu – imiona, nazwiska i numery indeksu:
@@ -12,7 +19,7 @@
 
 # ### Packages
 
-# In[345]:
+# In[46]:
 
 
 import re
@@ -27,7 +34,7 @@ from sklearn.metrics import mean_squared_error
 
 # ### Functions used in further analysis
 
-# In[346]:
+# In[47]:
 
 
 def features(df):
@@ -44,7 +51,7 @@ def features(df):
 
 # ### Data preparation
 
-# In[347]:
+# In[48]:
 
 
 # 1. Unzipping file
@@ -54,7 +61,7 @@ with zipfile.ZipFile('danehistorycznewojewodztwa.zip', 'r') as zip_ref:
     zip_ref.extractall()
 
 
-# In[348]:
+# In[49]:
 
 
 # 2. Scanning folder with data
@@ -78,7 +85,7 @@ def scan_folder(parent):
     return files_list
 
 
-files_list = scan_folder("C:/Users/lenovo/Desktop/MIESI/III semestr/DS_Python")  # Insert parent directory's path
+files_list = scan_folder(path)  # Insert parent directory's path
 
 
 # merging these files into one dataframe
@@ -94,13 +101,7 @@ for f in files_list:
     merged_df = pd.concat([merged_df, day_df])
 
 
-# In[349]:
-
-
-merged_df[['stan_rekordu_na', 'data']]
-
-
-# In[350]:
+# In[9]:
 
 
 # 3. Preprocessing dataframe with basic data
@@ -117,7 +118,7 @@ y = merged_df.set_index('data')
 y.index = pd.to_datetime(y.index)
 
 
-# In[351]:
+# In[10]:
 
 
 y
@@ -125,25 +126,25 @@ y
 
 # ### Data exploration
 
-# In[352]:
+# In[11]:
 
 
 y.plot()
 
 
-# In[353]:
+# In[12]:
 
 
 expl_df = features(y)
 
 
-# In[354]:
+# In[14]:
 
 
 expl_df
 
 
-# In[355]:
+# In[15]:
 
 
 expl_df.groupby(by=['year', 'month']).agg({'liczba_zakazen_total' : 'sum'})
@@ -151,7 +152,7 @@ expl_df.groupby(by=['year', 'month']).agg({'liczba_zakazen_total' : 'sum'})
 
 # ### Train/test split
 
-# In[356]:
+# In[16]:
 
 
 # dataframes with one column - target
@@ -159,7 +160,7 @@ train = y.loc[y.index <= datetime(2023, 11, 15)]
 test = y.loc[y.index > datetime(2023, 11, 15)]
 
 
-# In[357]:
+# In[17]:
 
 
 train
@@ -167,7 +168,7 @@ train
 
 # ### Creating some features
 
-# In[358]:
+# In[18]:
 
 
 # dataframes with target and features
@@ -175,7 +176,7 @@ train_df = features(train)
 test_df = features(test)
 
 
-# In[359]:
+# In[19]:
 
 
 train_df
@@ -183,7 +184,7 @@ train_df
 
 # ### Building model
 
-# In[360]:
+# In[20]:
 
 
 # Lists of variables names
@@ -191,7 +192,7 @@ X_names = ['day_of_week', 'quarter', 'month', 'year', 'day_of_year']
 y_name = ['liczba_zakazen_total']
 
 
-# In[361]:
+# In[21]:
 
 
 # Train and test sets - features and target column
@@ -202,7 +203,7 @@ X_test = test_df[X_names]
 y_test = test_df[y_name]
 
 
-# In[362]:
+# In[23]:
 
 
 # Looking for best parameters
@@ -249,10 +250,10 @@ for iteration in tqdm(range(num_iterations)):
 
 # Best parameters for model:
 print("Najlepsze parametry:", best_params)
-print("Najlepszy logloss:", best_loss)
+print("Najlepszy logloss:", best_mse)
 
 
-# In[363]:
+# In[24]:
 
 
 # v1: building model after parameteres optimization
@@ -272,7 +273,7 @@ reg_opt.fit(X_train
             , eval_set=[(X_train, y_train), (X_test, y_test)])
 
 
-# In[364]:
+# In[25]:
 
 
 # v2: building model with different parameters
@@ -290,7 +291,7 @@ reg.fit(X_train
 
 # ### Feature Importance
 
-# In[365]:
+# In[26]:
 
 
 fi = pd.DataFrame(data=reg.feature_importances_
@@ -298,7 +299,7 @@ fi = pd.DataFrame(data=reg.feature_importances_
                  , columns=['fi'])
 
 
-# In[366]:
+# In[27]:
 
 
 fi.sort_values(by='fi').plot(kind='barh')
@@ -307,14 +308,14 @@ plt.show()
 
 # ### Prediction on train and test sets
 
-# In[367]:
+# In[28]:
 
 
 # Prediction on train set
 train_df['prediction'] = reg.predict(X_train)
 
 
-# In[368]:
+# In[29]:
 
 
 ax = train_df[['liczba_zakazen_total']].plot(figsize=(15, 5))
@@ -324,14 +325,14 @@ ax.set_title('Raw Dat and Prediction')
 plt.show()
 
 
-# In[369]:
+# In[30]:
 
 
 # Prediction on test set
 test_df['prediction'] = reg.predict(X_test)
 
 
-# In[370]:
+# In[31]:
 
 
 ax = test_df[['liczba_zakazen_total']].plot(figsize=(15, 5))
@@ -343,7 +344,7 @@ plt.show()
 
 # ### Prediction on December 2023
 
-# In[371]:
+# In[40]:
 
 
 dec_date_df = pd.DataFrame({'data' : pd.date_range(start='20231201', end='20231231')})
@@ -351,19 +352,19 @@ dec_date_df = dec_date_df.set_index('data')
 dec_feat_df = features(dec_date_df)
 
 
-# In[372]:
+# In[41]:
 
 
 dec_feat_df['prediction'] = reg.predict(dec_feat_df)
 
 
-# In[373]:
+# In[42]:
 
 
 dec_feat_df
 
 
-# In[374]:
+# In[43]:
 
 
 dec_feat_df['prediction'].plot(style='-')
@@ -373,7 +374,7 @@ plt.show()
 
 # ### Sum of predictions in December 2023:
 
-# In[375]:
+# In[44]:
 
 
 dec_feat_df['prediction'].sum().round()
